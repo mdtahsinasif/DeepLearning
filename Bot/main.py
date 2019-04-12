@@ -98,6 +98,7 @@
         #virtualenv venv --python=python3.5
         #source venv/bin/activate 
         #pip -V
+        #pip install flask requests flask-sslify 
         
         
         
