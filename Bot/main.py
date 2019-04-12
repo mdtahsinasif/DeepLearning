@@ -94,6 +94,10 @@
         #3.Set a webhook
         #4.Receive and parse a user message
         #5.Send message to user
+        #pythonanywhere
+        #virtualenv venv --python=python3.5
+        #source venv/bin/activate 
+        #pip -V
         
         
         
