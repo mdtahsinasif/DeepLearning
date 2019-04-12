@@ -36,7 +36,7 @@
     def parse_message(message):
         chat_id =message['message']['chat']['id']
         txt = message['message']['text']
-        patters = r'/[a-zA-Z]{2,4}'
+        pattern = r'/[a-zA-Z]{2,4}'
         ticker = re.findall(pattern,txt)
         
         if ticker:
