@@ -1,5 +1,11 @@
 package com.cyfirma.core.service.impl;
-
+//http://alias-i.com/lingpipe/demos/tutorial/classify/read-me.html
+<!-- https://mvnrepository.com/artifact/de.julielab/aliasi-lingpipe -->
+		<dependency>
+			<groupId>de.julielab</groupId>
+			<artifactId>aliasi-lingpipe</artifactId>
+			<version>4.1.0</version>
+		</dependency>
 
 	
 import java.io.File;
