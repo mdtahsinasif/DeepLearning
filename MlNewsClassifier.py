@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Tue Dec 10 12:21:12 2019
-
+pip install nltk
 @author: tahsin.asif
 """
 
