@@ -1,0 +1,93 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package com.cyfirma.core.service.impl;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+
+import com.aliasi.classify.Classification;
+import com.aliasi.classify.Classified;
+import com.aliasi.classify.ConfusionMatrix;
+import com.aliasi.classify.DynamicLMClassifier;
+import com.aliasi.classify.JointClassification;
+import com.aliasi.classify.JointClassifier;
+import com.aliasi.classify.JointClassifierEvaluator;
+import com.aliasi.lm.NGramProcessLM;
+import com.aliasi.util.AbstractExternalizable;
+import com.aliasi.util.Compilable;
+
+/**
+ *
+ * @author Asif
+ */
+public class ExcelTestImpl {
+
+	/**
+	 * @param args the command line arguments
+	 */
+	@SuppressWarnings("deprecation")
+
+	private static String[] CATEGORIES = { 
+			"Cyber Law and Regulation",
+			"Emerging Threats and Cyberattacks",
+			"Threat Actors and Tools",
+			"Cyber Education and Awareness",
+			"Cyber Hacks and Incidents",
+			"Cyber Innovation and Technology",
+			"Cyber Insights",
+			"Cyber Policy and Process",
+			"Major Release and Events",
+			"Vulnerabilities And Exploits"
+			};
+
+	private static int NGRAM_SIZE = 3;
+
+	@SuppressWarnings({ "unchecked", "resource" })
+	public static void main(String[] args) {
+
+		try {
+			
+	        JointClassifier<CharSequence> compiledClassifier = (JointClassifier<CharSequence>) new ObjectInputStream(new FileInputStream(new File("abc.txt"))).readObject();
+
+			
+			boolean storeCategories = true;
+			JointClassifierEvaluator<CharSequence> evaluator = new JointClassifierEvaluator<CharSequence>(compiledClassifier, CATEGORIES, storeCategories);
+
+			String text = "How to Protect Your Organization From Evolving Phishing Attacks";
+
+			JointClassification jc = compiledClassifier.classify(text);
+
+			String bestCategory = jc.bestCategory();
+			System.out.println("Got best category of: " +text + "--->"+ bestCategory);
+			ConfusionMatrix confMatrix = evaluator.confusionMatrix();
+			// System.out.println("Total Accuracy: " + confMatrix.totalAccuracy());
+
+			// System.out.println("\nFULL EVAL");
+			// System.out.println(evaluator);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+	}
+}
