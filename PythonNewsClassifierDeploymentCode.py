@@ -4,6 +4,7 @@ Created on Tue Dec 10 12:51:40 2019
 
 @author: tahsin.asif
 """
+#postman Input data : {"data":"Fed official says weak data caused by weather, should not slow taper"}
 #pip install flask
 from flask import Flask, jsonify, request
 from sklearn.externals import joblib
