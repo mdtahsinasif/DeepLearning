@@ -1,0 +1,112 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Thu Dec 12 15:46:25 2019
+
+@author: tahsin.asif
+"""
+
+import pandas as pd
+#pip install flask
+from flask import Flask, jsonify, request
+from sklearn.externals import joblib
+import pandas as pd
+import os
+import sklearn
+from nltk.corpus import stopwords
+import json
+from django.http import JsonResponse
+import re
+import numpy as np
+from sklearn.feature_extraction.text import CountVectorizer
+news_df = pd.read_csv("C:/Users/tahsin.asif/OneDrive - Antuit India Private Limited/Asif/AI/UCI_NEWS/uci-news-aggregator.csv", sep = ",")
+# news_df.CATEGORY.unique()
+
+#Transform categories into discrete numerical values;
+#Transform all words to lowercase;
+#Remove all punctuations.
+
+import string
+
+news_df['CATEGORY'] = news_df.CATEGORY.map({ 'b': 1, 't': 2, 'e': 3, 'm': 4 })
+news_df['TITLE'] = news_df.TITLE.map(
+    lambda x: x.lower().translate(str.maketrans('','', string.punctuation))
+)
+
+news_df.head()
+
+#Split into train and test data sets
+
+from sklearn.model_selection import train_test_split
+
+X_train, X_test, y_train, y_test = train_test_split(
+    news_df['TITLE'], 
+    news_df['CATEGORY'], 
+    random_state = 1
+)
+
+print("Training dataset: ", X_train.shape[0])
+print("Test dataset: ", X_test.shape[0])
+
+from sklearn.feature_extraction.text import CountVectorizer
+
+count_vector = CountVectorizer(stop_words = 'english')
+training_data = count_vector.fit_transform(X_train)
+testing_data = count_vector.transform(X_test)
+
+
+from sklearn.naive_bayes import MultinomialNB
+
+naive_bayes = MultinomialNB()
+naive_bayes.fit(training_data, y_train)
+predictions = naive_bayes.predict(testing_data)
+text = 'Fed official says weak data caused by weather, should not slow taper'
+testing_data1 = count_vector.transform([text])
+print('testing_data1----------------->',testing_data1)
+
+predictions1 = naive_bayes.predict(testing_data1)
+print('predictions1',predictions1)
+predictions
+
+import joblib
+
+joblib.dump(naive_bayes, "C:/Users/tahsin.asif/OneDrive - Antuit India Private Limited/Asif/AI/UCI_NEWS/nb1-v1.pkl")
+
+from sklearn.metrics import accuracy_score, recall_score, precision_score, f1_score
+
+print("Accuracy score: ", accuracy_score(y_test, predictions))
+print("Recall score: ", recall_score(y_test, predictions, average = 'weighted'))
+print("Precision score: ", precision_score(y_test, predictions, average = 'weighted'))
+print("F1 score: ", f1_score(y_test, predictions, average = 'weighted'))
+
+app = Flask(__name__)
+
+@app.route('/predict', methods=['POST'])
+def predict():
+     json_= request.json
+     print ('json:-->[0]',json_['data'])
+    # print ('json:-->[1]',json_[1])
+     #print('json_g---->',json_g)
+     #json_obj = json.dumps(json_)
+    # print('json_obj',json_obj)
+    # text = 'Fed official says weak data caused by weather, should not slow taper'
+    # print('text---------->',text)
+    # count_vector = CountVectorizer(stop_words = 'english')
+   #  training_data = count_vector.fit_transform([text])
+     print('After Training Data line---------->')
+     testing_data = count_vector.transform([json_['data']])
+     print('After Testing Data line---------->',testing_data)
+   #  testing_Json_data = count_vector.fit_transform(json_['data'])
+    # testing_Json_data = count_vector.transform([json_['data']])
+     #testing_data1 = count_vector.transform([text])
+     prediction = dt_estimator.predict(testing_data)
+     print('prediction--------->',prediction)
+     return jsonify (pd.Series(prediction).to_json(orient='values'))
+ #({'prediction': (prediction)})
+ 
+MODEL_DIR = 'C:/Users/tahsin.asif/OneDrive - Antuit India Private Limited/Asif/AI/UCI_NEWS'
+#MODEL_FILE = 'Lr-v1.pkl'
+MODEL_FILE = 'nb1-v1.pkl'
+if __name__ == '__main__':
+     os.chdir(MODEL_DIR)
+     dt_estimator = joblib.load(MODEL_FILE)
+     app.run(port=8086)
