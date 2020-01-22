@@ -12,7 +12,11 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 import os
-print(os.listdir("../input"))
+#print(os.listdir("../input"))
+#returns current working directory
+os.getcwd()
+#changes working directory
+os.chdir("C:/Users/tahsin.asif/OneDrive - Antuit India Private Limited/Asif/AI/URLDetection/")
 
 urldata = pd.read_csv("C:/Users/tahsin.asif/OneDrive - Antuit India Private Limited/Asif/AI/URLDetection/urldata.csv")
 urldata.head()
@@ -32,6 +36,7 @@ from urllib.parse import urlparse
 from tld import get_tld
 import os.path
 
+print('urldata----------->', urldata['url'])
 urldata['url_length'] = urldata['url'].apply(lambda i: len(str(i)))
 print(urldata['url_length'] )
 
@@ -50,6 +55,8 @@ def fd_length(url):
 
 urldata['fd_length'] = urldata['url'].apply(lambda i: fd_length(i))
 
+print(urldata['fd_length'])
+
 #Length of Top Level Domain
 urldata['tld'] = urldata['url'].apply(lambda i: get_tld(i,fail_silently=True))
 def tld_length(tld):
@@ -59,7 +66,7 @@ def tld_length(tld):
         return -1
 
 urldata['tld_length'] = urldata['tld'].apply(lambda i: tld_length(i))
-
+print(urldata['tld_length']) 
 
 urldata.head()
 
@@ -114,6 +121,8 @@ def having_ip_address(url):
         # print 'No matching pattern found'
         return 1
 urldata['use_of_ip'] = urldata['url'].apply(lambda i: having_ip_address(i))
+print(urldata['use_of_ip'] )
+
 
 def shortening_service(url):
     match = re.search('bit\.ly|goo\.gl|shorte\.st|go2l\.ink|x\.co|ow\.ly|t\.co|tinyurl|tr\.im|is\.gd|cli\.gs|'
@@ -262,6 +271,7 @@ dt_model = DecisionTreeClassifier()
 dt_model.fit(x_train,y_train)
 
 dt_predictions = dt_model.predict(x_test)
+
 accuracy_score(y_test,dt_predictions)
 
 print(confusion_matrix(y_test,dt_predictions))
@@ -284,3 +294,53 @@ accuracy_score(y_test,log_predictions)
 
 print(confusion_matrix(y_test,log_predictions))
 
+
+from sklearn.externals import joblib
+path = 'C:/Users/tahsin.asif/OneDrive - Antuit India Private Limited/Asif/AI/URLDetection/'
+#copy the model to pkl file and keep the model file at required server location
+joblib.dump(log_model,os.path.join(path, 'log_model-v1.pkl') )
+joblib.dump(rfc,os.path.join(path, 'rfc_model-v1.pkl') )
+
+#cross check the dumped model with load
+classifier_loaded = joblib.load(os.path.join(path, 'log_model-v1.pkl') )
+classifier_loaded = joblib.load(os.path.join(path, 'rfc_model-v1.pkl') )
+
+#titanic_test = pd.read_csv("C:/Users/tahsin.asif/OneDrive - Antuit India Private Limited/Asif/AI/URLDetection/TestingUrlNew.csv")
+#X_test = titanic_test.drop(['label'],1)
+
+#titanic_test['result'] = dt_model.predict(X_test)
+#titanic_test.to_csv("submission.csv", columns=['PassengerId','Survived'], index=False)
+# Hard Voting
+
+#hard voting ensemble
+from sklearn import tree, model_selection, preprocessing, ensemble, feature_selection, neighbors, naive_bayes
+
+dt_estimator = tree.DecisionTreeClassifier(random_state=100)
+
+knn_estimator = neighbors.KNeighborsClassifier()
+
+nb_estimator = naive_bayes.GaussianNB()
+
+ada_estimator = ensemble.AdaBoostClassifier(random_state=100)
+
+rf_estimator = ensemble.RandomForestClassifier(random_state=100)
+
+estimators = [('dt', dt_estimator), ('knn', knn_estimator), ('nb', nb_estimator) , ('rf', rf_estimator), ('ada', ada_estimator)]
+hvoting_estimator = ensemble.VotingClassifier(estimators)
+voting_grid = {'dt__max_depth':[3,7], 'knn__n_neighbors':[3,5,7], 'ada__n_estimators':[50, 100], 'rf__n_estimators':[50, 100] }
+hvoting_grid_estimator = model_selection.GridSearchCV(hvoting_estimator, voting_grid, scoring='accuracy', cv=10, return_train_score=True)
+hvoting_grid_estimator.fit(x_train, y_train)
+print(hvoting_grid_estimator.best_score_)
+print(hvoting_grid_estimator.best_params_)
+final_estimator = hvoting_grid_estimator.best_estimator_
+print(final_estimator.estimators_)
+print(final_estimator.score(x_train, y_train))
+
+joblib.dump(final_estimator,os.path.join(path, 'final_estimator-v1.pkl') )
+
+#cross check the dumped model with load
+classifier_loaded = joblib.load(os.path.join(path, 'final_estimator-v1.pkl') )
+
+# postman input {"data":"https://xrpinvesting.com/wp-includes/js/tinymce/home/login.php"}
+
+# post param - http://localhost:8086/predict
