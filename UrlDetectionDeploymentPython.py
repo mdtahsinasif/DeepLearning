@@ -156,10 +156,10 @@ def predict():
  
 
 cleanHeadlines_request= []    
- 
-MODEL_DIR = 'C:/Users/tahsin.asif/OneDrive - Antuit India Private Limited/Asif/AI/URLDetection/'
+ MODEL_DIR = 'C:/Users/tahsin.asif/OneDrive - Antuit India Private Limited/Asif/AI/URLDetection/'
 #MODEL_FILE = 'log_model-v1.pkl'
-MODEL_FILE = 'rfc_model-v1.pkl'
+MODEL_FILE ='final_estimator-v1.pkl'
+#MODEL_FILE = 'rfc_model-v1.pkl'
 if __name__ == '__main__':
      os.chdir(MODEL_DIR)
      log_estimator = joblib.load(MODEL_FILE)
