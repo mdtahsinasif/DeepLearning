@@ -11,6 +11,7 @@ import os
 import datetime
 import json
 import urllib.request
+from gensim.summarization import summarize
 
 
 
@@ -57,7 +58,7 @@ text_str1 = Path(
 text_str1 = '''
 '''
 
-url = 'https://ciso.economictimes.indiatimes.com/news/user-data-not-affected-from-new-mp4-file-bug-whatsapp/72106154?utm_source=RSS&utm_medium=ETRSS'
+url = 'https://towardsdatascience.com/easily-scrape-and-summarize-news-articles-using-python-dfc7667d9e74'
 
 headers = {}
 headers[
@@ -177,8 +178,7 @@ def run_summarization(text):
     threshold = _find_average_score(sentence_scores)
 
     # 5 Important Algorithm: Generate the summary
-    summary = _generate_summary(sentences, sentence_scores, .75 * threshold)
-    print("After Summary")
+    summary = _generate_summary(sentences, sentence_scores, 0.8 * threshold)
     return summary
 
 
@@ -192,6 +192,7 @@ def run_dbConnection(localhost, port):
                                  "link": 1,
                                  "date": datetime.datetime.utcnow()
                                  }).limit(1)
+    d={}
     for x in mydoc:
         jsonToStr = json.dumps(x)
         count = len(jsonToStr)
@@ -199,30 +200,79 @@ def run_dbConnection(localhost, port):
         list_val = x["description"]
         lenList = len(list_val)
         print('Success-------->',lenList)
+        d[list_key] = list_val
+        #print(list_key)
         if lenList < 190:
-            print('condition true---')
+            #print('condition true---')
             headers = {}
             headers[
                 'User-Agent'] = 'Mozilla/5.0 (X11; Linux i686) AppleWebKit/537.17 (KHTML, like Gecko) Chrome/24.0.1312.27 Safari/537.17'
 
-            request = urllib.request.Request(list_key, headers=headers)
+            request = urllib.request.Request('https://ciso.economictimes.indiatimes.com/news/turkish-cybercriminals-hack-tripura-atms-steal-huge-cash/72109102?utm_source=RSS&utm_medium=ETRSS', headers=headers)
             text_str2 = urllib.request.urlopen(request)
-            print("text_str2-------------------------")
-
             text_str = text_str2.read()
             # print('review_text------->',text_str)
             # 1.Remove HTML
+
             soup = BeautifulSoup(text_str, "html.parser")
-            print("After SOup========================")
-            [x.extract() for x in soup.findAll(['script', 'style'])]
+            [x.extract() for x in soup.findAll(['script', 'style','nonscript'])]
+            #[x.extract() for x in soup.findAll('header')]
+
+            for span in soup.find_all('span'):
+                span.decompose()
+             
+            for li in soup.find_all('li'):
+                li.decompose()
+                
+            for noscript in soup.find_all('noscript'):
+                noscript.decompose() 
+                
+            for footer in soup.find_all('footer'):
+                footer.decompose() 
+            
+            for title in soup.find_all('title'):
+                title.decompose() 
+                 
+            for div in soup.find_all("div", {'class':'glob_nav'}): 
+                div.decompose()    
+                
+            for a in soup.find_all('a'):
+                a.decompose()
+                
+            for div in soup.find_all("div", {'class':'glob_nav'}): 
+                div.decompose()   
+                
+            for div in soup.find_all("div", {'class':'cookie_stng hide'}): 
+                div.decompose()     
+                
+                
+                          
+                
+                
+            #soup.ul.decompose()
             review_text = soup.get_text(strip=True)
-            print("After review_text========================")
             result = run_summarization(review_text)
             print(result)
             # print(review_text)
-
-
-
+            
+# =============================================================================
+#             # Get headline
+#             headline = soup.find('h1').get_text()
+#             # Get text from all <p> tags.
+#             p_tags = soup.find_all('p')
+#             # Get the text from each of the “p” tags and strip surrounding whitespace.
+#             p_tags_text = [tag.get_text().strip() for tag in p_tags]
+#             
+#             # Filter out sentences that contain newline characters '\n' or don't contain periods.
+#             sentence_list = [sentence for sentence in p_tags_text if not '\n' in sentence]
+#             sentence_list = [sentence for sentence in sentence_list if '.' in sentence]
+#             # Combine list items into string.
+#             article = ' '.join(sentence_list)
+#             result = run_summarization(article)
+#          #   summary = summarize(article, ratio=1.9)
+#             print ('summary--------------->',result)
+# 
+# =============================================================================
 
 
 if __name__ == '__main__':
