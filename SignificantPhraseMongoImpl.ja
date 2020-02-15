@@ -1,0 +1,181 @@
+package com.cyfirma.core.service.impl;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.SortedSet;
+
+import com.aliasi.lm.TokenizedLM;
+import com.aliasi.tokenizer.IndoEuropeanTokenizerFactory;
+import com.aliasi.tokenizer.TokenizerFactory;
+import com.aliasi.util.Files;
+import com.aliasi.util.ScoredObject;
+import com.mongodb.BasicDBObject;
+import com.mongodb.DB;
+import com.mongodb.DBCollection;
+import com.mongodb.DBCursor;
+import com.mongodb.DBObject;
+import com.mongodb.MongoClient;
+import org.bson.Document;
+public class SignificantPhrasesImpl {
+
+	private static int NGRAM = 3;
+	private static int MIN_COUNT = 5;
+	private static int MAX_NGRAM_REPORTING_LENGTH = 3;
+	private static int NGRAM_REPORTING_LENGTH = 2;
+	private static int MAX_COUNT = 100;
+
+	private static File BACKGROUND_DIR = new File(
+			"C:\\Users\\tahsin.asif\\OneDrive - CYFIRMA INDIA PRIVATE LIMITED\\AI\\News\\SignificantPhrases\\Train\\rec.sport.hockey");
+	private static File FOREGROUND_DIR = new File(
+			"C:\\Users\\tahsin.asif\\OneDrive - CYFIRMA INDIA PRIVATE LIMITED\\AI\\News\\SignificantPhrases\\Train\\rec.sport.hockey");
+	static List descpript ;
+	
+	public static void main(String[] args) throws IOException {
+		
+	
+		descpript =  new ArrayList<String>();
+		MongoClient mongo = new MongoClient("localhost", 27017);
+		DB db = mongo.getDB("core");
+		DBCollection col = db.getCollection("rss_feed_entry");
+		System.out.println("\n1. Get 'name' field only");
+		BasicDBObject allQuery = new BasicDBObject();
+		BasicDBObject fields = new BasicDBObject();
+		BasicDBObject neQuery = new BasicDBObject();
+	//	neQuery.put("description", new BasicDBObject("$lt", 5));
+		fields.put("_id", 0);
+		fields.put("summary", 10);
+	//	DBCursor cursor2 = col.find(neQuery);
+		DBCursor cursor2 = col.find(allQuery, fields);
+		
+		
+		
+		while (cursor2.hasNext()) {
+	//		System.out.println(cursor2.next());
+			descpript.add(cursor2.next());
+		}
+		for(int i = 0; i< descpript.size() ; ++i) {
+		
+		System.out.println("List Value"+descpript.get(i));
+		}
+		//getMongoDbConnection();
+		TokenizerFactory tokenizerFactory = IndoEuropeanTokenizerFactory.INSTANCE;
+
+		System.out.println("Training background model");
+		TokenizedLM backgroundModel = buildModel1(tokenizerFactory, NGRAM, descpript);
+
+		backgroundModel.sequenceCounter().prune(3);
+
+		System.out.println("\nAssembling collocations in Training");
+		SortedSet<ScoredObject<String[]>> coll = backgroundModel.collocationSet(NGRAM_REPORTING_LENGTH, MIN_COUNT,
+				MAX_COUNT);
+
+		System.out.println("\nCollocations in Order of Significance:");
+		report(coll);
+
+//		System.out.println("Training foreground model");
+//		TokenizedLM foregroundModel = buildModel(tokenizerFactory, NGRAM, FOREGROUND_DIR);
+//		foregroundModel.sequenceCounter().prune(3);
+//
+//		System.out.println("\nAssembling New Terms in Test vs. Training");
+//		SortedSet<ScoredObject<String[]>> newTerms = foregroundModel.newTermSet(NGRAM_REPORTING_LENGTH, MIN_COUNT,
+//				MAX_COUNT, backgroundModel);
+//
+//		System.out.println("\nNew Terms in Order of Signficance:");
+//		report(newTerms);
+//
+//		System.out.println("\nDone.");
+	}
+
+	private static TokenizedLM buildModel(TokenizerFactory tokenizerFactory, int ngram, File directory)
+			throws IOException {
+
+		String[] trainingFiles = directory.list();
+		TokenizedLM model = new TokenizedLM(tokenizerFactory, ngram);
+		// System.out.println("Training on "+directory);
+
+		for (int j = 0; j < trainingFiles.length; ++j) {
+			String text = Files.readFromFile(new File(directory, trainingFiles[j]), "ISO-8859-1");
+			model.handle(text);
+		}
+		return model;
+	}
+	
+	private static TokenizedLM buildModel1(TokenizerFactory tokenizerFactory, int ngram, List descript)
+			throws IOException {
+
+	//	String[] trainingFiles = directory.list();
+		TokenizedLM model = new TokenizedLM(tokenizerFactory, ngram);
+	//	 System.out.println("Training on "+descript);
+
+		for (int j = 0; j < descript.size(); ++j) {
+		//	String text = Files.readFromFile(new File(directory, trainingFiles[j]), "ISO-8859-1");
+			String text = descript.get(j).toString();
+			model.handle(text);
+		}
+		return model;
+	}
+
+	private static void report(SortedSet<ScoredObject<String[]>> nGrams) {
+		for (ScoredObject<String[]> nGram : nGrams) {
+			double score = nGram.score();
+			String[] toks = nGram.getObject();
+			report_filter(score, toks);
+		}
+	}
+
+	private static void report_filter(double score, String[] toks) {
+		String accum = "";
+		for (int j = 0; j < toks.length; ++j) {
+			if (nonCapWord(toks[j]))
+				return;
+			accum += " " + toks[j];
+		}
+		System.out.println("Score: "+score+" with :"+accum);
+	}
+
+	private static boolean nonCapWord(String tok) {
+		if (!Character.isUpperCase(tok.charAt(0)))
+			return true;
+		for (int i = 1; i < tok.length(); ++i)
+			if (!Character.isLowerCase(tok.charAt(i)))
+				return true;
+		return false;
+	}
+
+	public static void getMongoDbConnection() {
+		descpript =  new ArrayList<String>();
+		MongoClient mongo = new MongoClient("localhost", 27017);
+		DB db = mongo.getDB("core");
+		DBCollection col = db.getCollection("rss_feed_entry");
+		System.out.println("\n1. Get 'name' field only");
+		BasicDBObject allQuery = new BasicDBObject();
+		BasicDBObject fields = new BasicDBObject();
+		BasicDBObject neQuery = new BasicDBObject();
+	//	neQuery.put("description", new BasicDBObject("$lt", 5));
+		fields.put("_id", 0);
+		fields.put("description", 5);
+	//	DBCursor cursor2 = col.find(neQuery);
+		DBCursor cursor2 = col.find(allQuery, fields);
+		
+		
+		
+		while (cursor2.hasNext()) {
+	//		System.out.println(cursor2.next());
+			descpript.add(cursor2.next());
+			
+			//new ArrayList<Document>().add((Document) cursor2.next());
+		}
+		/*for(int i = 0; i< descpript.size() ; ++i) {
+			
+			System.out.println("List Value"+descpript.get(i));
+		}
+	*/
+
+//			DBObject myDoc = col.findOne("description");
+//			System.out.println(myDoc);
+
+	}
+
+}
