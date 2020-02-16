@@ -4,8 +4,12 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -30,7 +34,8 @@ public class ExtractNounPhraseNlp {
 	static Set<String> nounPhrases = new HashSet<>();
 	static List<String> wordList = new ArrayList<String>();
 	static String wordliststring = "";
-	static Map<String, Integer> wordCounter = new HashMap<String, Integer>();
+	static Map<String, Integer> wordCounter = new LinkedHashMap<String, Integer>();
+	
 	static List descpript;
 	static List dbDataList;
 
@@ -50,7 +55,7 @@ public class ExtractNounPhraseNlp {
 
 			// create parse tree
 			Parser parser = ParserFactory.create(model);
-			Parse topParses[] = ParserTool.parseLine(descpript.toString().replaceAll("[^a-zA-Z0-9]", " "), parser, 1);
+			Parse topParses[] = ParserTool.parseLine(descpript.toString().toLowerCase().replaceAll("[^a-zA-Z0-9]", " "), parser, 1);
 			Parse words[] = null;
 			// call subroutine to extract noun phrases
 			for (Parse nodes : topParses) {
@@ -73,7 +78,19 @@ public class ExtractNounPhraseNlp {
 				// System.out.println(text);
 				countOccurences(wordList, text);
 			}
-			for (Map.Entry<String, Integer> entry : wordCounter.entrySet()) {
+			// Create a list from elements of HashMap 
+	        List<Map.Entry<String, Integer> > list = 
+	               new LinkedList<Map.Entry<String, Integer> >(wordCounter.entrySet()); 
+	  
+	        // Sort the list 
+	        Collections.sort(list, new Comparator<Map.Entry<String, Integer> >() { 
+	            public int compare(Map.Entry<String, Integer> o1,  
+	                               Map.Entry<String, Integer> o2) 
+	            { 
+	                return (o1.getValue()).compareTo(o2.getValue()); 
+	            } 
+	        }); 
+			for (Map.Entry<String, Integer> entry : list) {
 				System.out.println(entry.getKey() + ":" + entry.getValue());
 			}
 		} catch (IOException e) {
