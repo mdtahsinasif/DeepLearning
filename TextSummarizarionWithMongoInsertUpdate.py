@@ -182,7 +182,7 @@ def run_dbConnection(localhost, port):
         # 1.Remove Tags
         [x.extract() for x in soup.findAll(['script', 'style', 'nonscript'])]
         [y.decompose() for y in soup.findAll(['span', 'li', 'noscript', 'footer',
-                                              'title', 'a', 'h3'])]
+                                              'title', 'a', 'h3','h2','h4'])]
 
         for div in soup.findAll("div.cookie_accpt"):
             div.decompose()
