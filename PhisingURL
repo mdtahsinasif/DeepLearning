@@ -1,0 +1,30 @@
+
+import pandas as pd
+import os
+
+train_CSV = os.path.join("phishing-dataset", "C:\\Users\\tahsin.asif\\-----------\\AI\\PhisingURL\\phishing-dataset\\train.csv")
+test_CSV = os.path.join("phishing-dataset", "C:\\Users\\tahsin.asif\\--------------\\AI\\PhisingURL\\phishing-dataset\\test.csv")
+train_df = pd.read_csv(train_CSV)
+test_df = pd.read_csv(test_CSV)
+
+
+train_df.head()
+
+
+y_train = train_df.pop("target").values
+
+y_test = test_df.pop("target").values
+
+#print("y_test----",y_test)
+
+X_train = train_df.values
+X_test = test_df.values
+
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score, confusion_matrix
+
+clf = RandomForestClassifier()
+clf.fit(X_train, y_train)
+y_test_pred = clf.predict(X_test)
+print(accuracy_score(y_test, y_test_pred))
+print(confusion_matrix(y_test, y_test_pred))
