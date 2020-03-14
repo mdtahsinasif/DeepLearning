@@ -1,0 +1,59 @@
+#Get the url
+import inline as inline
+import matplotlib
+
+link = 'http://www.gutenberg.org/files/1661/1661-h/1661-h.htm'
+import requests
+request = requests.get(link)
+# extract html from request
+html = request.text
+#import beatuiful soap from bs4
+
+from bs4 import BeautifulSoup
+
+# create beautifusoup object from the html
+soup = BeautifulSoup(html,"html5lib")
+print(soup.title)
+print(soup.title.string)
+print(soup.findAll('a')[:12])
+
+text = soup.get_text()
+import re
+#Find all words in Sherlocks holmes and print several
+tokens = re.findall('\w+',text)
+print(tokens[:10])
+
+#Initialize the new list
+words = []
+# loop through list tokens and make lower cases
+
+for word in tokens:
+    words.append(word.lower())
+
+print(words[:8])
+
+import nltk
+# Get English stopwords and print some
+
+sw = nltk.corpus.stopwords.words('english')
+print(sw[:5])
+
+# Initilise the new List
+
+words_ns = []
+
+for word in words:
+    if word not in sw:
+        words_ns.append(word)
+
+print(words_ns[:10])
+
+
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+#%matplotlib inline
+sns.set(rc={'figure.figsize':(11.7,8.27)})
+sns.set_style('darkgrid')
+nlp_words = nltk.FreqDist(words_ns)
+nlp_words.plot(20)
