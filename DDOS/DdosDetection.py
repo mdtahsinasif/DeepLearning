@@ -26,7 +26,7 @@ dtypes = {
 date_columns = ["Timestamp"]
 
 df = pd.read_csv(
-    "C:\\Backup\\PycharmProjects\\PycharmProjects\\DDOS\\ddos_dataset.csv",
+    "PycharmProjects\\DDOS\\ddos_dataset.csv",
     usecols=features,
     dtype=dtypes,
     parse_dates=date_columns,
@@ -62,7 +62,7 @@ from sklearn.ensemble import RandomForestClassifier
 clf = RandomForestClassifier(n_estimators=50)
 clf.fit(X_train, y_train)
 
-path = 'C:\\Backup\\PycharmProjects\\PycharmProjects\\DDOS'
+path = '...........\\DDOS'
 
 
 joblib.dump(clf,os.path.join(path, 'ddos_clf_modelV2.pkl') )
@@ -87,7 +87,7 @@ x = ddosInput[[ 'Fwd Pkt Len Mean','Fwd Seg Size Avg',
                   ]]
 
 
-MODEL_FILE = 'C:\\Backup\\PycharmProjects\\PycharmProjects\\DDOS\\ddos_clf_modelV2.pkl'
+MODEL_FILE = '......DDOS\\ddos_clf_modelV2.pkl'
 ddos_estimator = joblib.load(MODEL_FILE)
 
 prediction = ddos_estimator.predict(x)
